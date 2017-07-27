@@ -12,9 +12,12 @@ namespace OneTimeUses
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("Starting main");
-            StringReader textReader = new StringReader(@"C:\Users\Yisroel\Documents\SHIELD\College\TurkPrime\Journals\mtpp.csv");
-            var csv = new CsvReader(textReader);
+	        string path = @"C:\Users\Avi\Downloads\mtpp csv.csv";
+
+			Console.WriteLine("Starting main");
+	        TextReader textReader = File.OpenText(path);
+
+			var csv = new CsvReader(textReader);
             var records = csv.GetRecords<Paper>().ToList();
             Console.WriteLine("Records main: " + records + " size: " + records.Count);
 

@@ -20,5 +20,7 @@ namespace OneTimeUses
 	    public string PublicationDate { get; set; }
 	    public string Link { get; set; }
 	    public string Abstract { get; set; }
+
+
 	}
 }
