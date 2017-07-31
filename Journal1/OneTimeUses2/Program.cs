@@ -29,7 +29,8 @@ namespace OneTimeUses2
                 pfArray[i++] = new PaperFormatted(record);
             }
 
-            Console.ReadLine();
+
+			Console.ReadLine();
 
 
             BsonClassMap.RegisterClassMap<PaperFormatted>();
@@ -42,7 +43,7 @@ namespace OneTimeUses2
 			//	}
 			//}
 			var database = client.GetDatabase("Papers");
-			var collection = database.GetCollection<PaperFormatted>("bar1");
+			var collection = database.GetCollection<PaperFormatted>("bar2");
 	        
 	        foreach (PaperFormatted pf in pfArray)
 			{

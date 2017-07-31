@@ -12,8 +12,8 @@ namespace OneTimeUses2
 	    public string PsychArea { get; set; }
 	    public string KeyTopic { get; set; }
 	    public string TargetPopulation { get; set; }
-	    public int Number { get; set; }
-	    public string Title { get; set; }
+	    public int Number { get; set; } //not necessary but useful for correlating data between VS and Excel
+		public string Title { get; set; }
 	    public string Authors { get; set; }
 	    public string JournalName { get; set; }
 	    public string AlertMonth { get; set; }

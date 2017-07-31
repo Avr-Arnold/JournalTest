@@ -1,22 +1,24 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using MongoDB.Bson;
 
 namespace OneTimeUses2
 {
 	public class PaperFormatted //public for web app
 	{
-
 		public ObjectId Id { get; set; }
 		public string Fields { get; set; } //I would prefer Enums for most, but get it working first
 		public string PsychArea { get; set; }
 		public string KeyTopic { get; set; }
 		public string TargetPopulation { get; set; }
-		public int Number { get; set; }
+		public int Number { get; set; } //not necessary but useful for correlating data between VS and Excel
 		public string Title { get; set; }
-		public string[] Authors { get; set; }
+		public List<string> Authors { get; set; }
 		public string JournalName { get; set; }
 		public string AlertMonth { get; set; }
-		public string PublicationDate { get; set; }
+		public  DateTime PublicationDate { get; set; }
 		public string Link { get; set; }
 		public string Abstract { get; set; }
 
@@ -35,14 +37,30 @@ namespace OneTimeUses2
 			TargetPopulation = pi.TargetPopulation;
 			Number = pi.Number;
 			Title = pi.Title;
-			Authors = pi.Authors.Split(',');
+			Authors = pi.Authors.Split(',').ToList();
 			JournalName = pi.JournalName;
 			AlertMonth = pi.AlertMonth;
-			PublicationDate = pi.PublicationDate;
-			Link = pi.Link;
+            SetPublicationDate(pi.PublicationDate);
+            Link = pi.Link;
 			Abstract = pi.Abstract;
 		}
 
-		
+		private void SetPublicationDate(string pubDateString)
+		{
+			int month = 0;
+			int year = 0;
+			if (pubDateString.Contains('/'))
+			{
+				string[] temp = pubDateString.Split('/');
+				month = Convert.ToInt32(temp[0]);
+				year = Convert.ToInt32(temp[1]) + 2000; //Bec the input years are i.e. 15, 16
+				PublicationDate = new DateTime(year, month, 1);
+			}
+			else
+			{
+				PublicationDate = DateTime.MinValue;
+			}
+
+		}
 	}
 }
