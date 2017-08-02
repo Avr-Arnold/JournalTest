@@ -15,7 +15,7 @@ namespace WebApp1.Models
 		public string[] Authors { get; set; }
 		public string JournalName { get; set; }
 		public string AlertMonth { get; set; }
-		public string PublicationDate { get; set; }
+		public DateTime PublicationDate { get; set; }
 		public string Link { get; set; }
 		public string Abstract { get; set; }
 	}

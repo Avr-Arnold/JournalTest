@@ -52,9 +52,11 @@ namespace OneTimeUses2
 			if (pubDateString.Contains('/'))
 			{
 				string[] temp = pubDateString.Split('/');
-				month = Convert.ToInt32(temp[0]);
-				year = Convert.ToInt32(temp[1]) + 2000; //Bec the input years are i.e. 15, 16
+				month = Convert.ToInt32(temp[1]);
+				year = Convert.ToInt32(temp[0]) + 2000; //Bec the input years are i.e. 15, 16
 				PublicationDate = new DateTime(year, month, 1);
+				
+			
 			}
 			else
 			{
