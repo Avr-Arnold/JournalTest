@@ -7,6 +7,8 @@ using System.Web.Mvc;
 using MongoDB.Bson;
 using MongoDB.Driver;
 using OneTimeUses2;
+using PagedList;
+using WebApp1.Models;
 
 
 namespace WebApp1.Controllers
@@ -16,83 +18,92 @@ namespace WebApp1.Controllers
 		static string connectionString = @"mongodb://localhost:27017";
 		static MongoClient client = new MongoClient(connectionString);
 		static IMongoDatabase database = client.GetDatabase("Papers");
-		IMongoCollection<PaperFormatted> collection = database.GetCollection<PaperFormatted>("bar2");
+		IMongoCollection<PaperViewModel> collection = database.GetCollection<PaperViewModel>("bar2");
 		private static DateTime Now = DateTime.MaxValue; //in case the date on the computer is wrong
+		public const int MaximumPageSize = 100;
 
 		public ActionResult Index()
 		{
 			return View();
 		}
-
-		private List<PaperFormatted> ListByTopic(string s)
+		private List<PaperViewModel> ListByTitle(string s)
+		{
+			return collection.AsQueryable().Where(p => p.Title.Contains(s)).ToList();
+		}
+		private List<PaperViewModel> ListByJournal(string s)
+		{
+			return collection.AsQueryable().Where(p => p.JournalName.Contains(s)).ToList();
+		}
+		private List<PaperViewModel> ListByTopic(string s)
 		{
 			return collection.AsQueryable().Where(p => p.Abstract.Contains(s)).ToList();
 		}
 
-		private List<PaperFormatted> ListByAuthor(string s)
+		private List<PaperViewModel> ListByAuthor(string s)
 		{
 			return collection.AsQueryable().Where(p => p.Authors.Any(a => a.Contains(s))).ToList();
 		}
 
-		private List<PaperFormatted> ListByDate(int year, int month)
+		private IEnumerable<PaperViewModel> ListByDate(int year, int month)
 		{
 			DateTime dt = new DateTime(year, month, 1);
-			var filter = Builders<PaperFormatted>.Filter.Eq(p => p.PublicationDate, dt);
-			return collection.Find(filter).ToList();
+			var filter = Builders<PaperViewModel>.Filter.Eq(p => p.PublicationDate, dt);
+			return collection.Find(filter).ToEnumerable();
 
 
 			//Additional 2 ways to do this that work.
+			//DateTime dtBegin = new DateTime(2016, 7, 1);
+			//DateTime dtEnd = new DateTime(2016, 8, 1);
 			//var filterBuilder = Builders<PaperFormatted>.Filter;
 
 			//var filter = filterBuilder.Gte(p => p.PublicationDate, dtBegin) & filterBuilder.Lt(p => p.PublicationDate, dtEnd);
 			//var pf = collection.Find(filter).ToList();
-			//var pf2 = collection.AsQueryable().Where(p => p.PublicationDate.Equals(dtBegin)).ToList();
+			//var pf2 = collection.AsQueryable().Where(p => p.PublicationDate.Equals(dt)).ToList();
 
 		}
 
-		private List<PaperFormatted> ListByDateDesc()
+		private IEnumerable<PaperViewModel> ListByDateDesc()
 		{
 			
-			var filter = Builders<PaperFormatted>.Filter.Lte(p => p.PublicationDate, Now);
-			var sortedList = Builders<PaperFormatted>.Sort.Descending(p => p.PublicationDate);
-			var list = collection.Find(filter).Sort(sortedList).ToList();
+			var filter = Builders<PaperViewModel>.Filter.Lte(p => p.PublicationDate, Now);
+			var sortedList = Builders<PaperViewModel>.Sort.Descending(p => p.PublicationDate);
+			var list = collection.Find(filter).Sort(sortedList).ToEnumerable();
 			return list;
 
 		}
 
-		public async Task<ActionResult> About()
+		private IEnumerable<PaperViewModel> Search(List<FilterViewModel> filters)
 		{
-			//var client = new MongoClient(connectionString);
-			//var database = client.GetDatabase("Papers");
-			//var collection = database.GetCollection<PaperFormatted>("bar2");
 
-			DateTime dtBegin = new DateTime(2016, 7, 1);
-			DateTime dtEnd = new DateTime(2016, 8, 1);
-			var list2 = collection.AsQueryable().Where(p => p.Authors.Any(s => s.Contains("Robert"))).ToList();
+			var filter = Builders<PaperViewModel>.Filter.Lte(p => p.PublicationDate, Now);
+			var sortedList = Builders<PaperViewModel>.Sort.Descending(p => p.PublicationDate);
+			var list = collection.Find(filter).Sort(sortedList).ToEnumerable();
+			return list;
 
-			var list = collection.AsQueryable().Where(p => p.Abstract.Contains("food")).ToList() ;
-			var filterBuilder = Builders<PaperFormatted>.Filter;
+		}
 
-			var filter = filterBuilder.Gte(p => p.PublicationDate, dtBegin) & filterBuilder.Lt(p => p.PublicationDate, dtEnd);
-			var pf =  collection.Find(filter).ToList();
-			var pf2 = collection.AsQueryable().Where(p => p.PublicationDate.Equals(dtBegin)).ToList();
+		//I assume projection makes queries faster but for convience of display will leave off for now. 
+		//However, see https://stackoverflow.com/questions/24885811/projection-makes-query-slower to make sure we are not making the same mistakes
+		public async Task<ActionResult> About(int page = 1 , int pageSize = 25)
+		{
+			
+			
 			var dateTest = ListByDateDesc();
-			ViewBag.Message = "Your application description page.";
-			//ViewBag.Documents = list;
-			//ViewBag.Id = pf.Id;
-			//ViewBag.Fields = pf.Fields;
-			//ViewBag.PsychArea = pf.PsychArea;
-			//ViewBag.KeyTopic = pf.KeyTopic;
-			//ViewBag.TargetPopulation = pf.TargetPopulation;
-			//ViewBag.Title = pf.Title;
-			//ViewBag.Authors = pf.Authors;
-			//ViewBag.JournalName = pf.JournalName;
-			//ViewBag.AlertMonth = pf.AlertMonth;
-			//ViewBag.PublicationDate = pf.PublicationDate;
-			//ViewBag.Link = pf.Link;
-			//ViewBag.Abstract = pf.Abstract;
+			if (pageSize > MaximumPageSize)
+			{
+				pageSize = MaximumPageSize;
+			}
+			ViewBag.PageSize = pageSize;
+			ViewBag.Page = page;
 
-			return View();
+			ViewBag.Message = "Your application description page.";
+			
+            return View(dateTest.ToPagedList(page,pageSize));
+		}
+
+		IList<PaperFormatted> GetPage(List<PaperFormatted> list, int page, int pageSize = 25)
+		{
+			return list.Skip(page * pageSize).Take(pageSize).ToList();
 		}
 
 		public ActionResult Contact()
@@ -101,5 +112,10 @@ namespace WebApp1.Controllers
 
 			return View();
 		}
+	}
+
+	public class FilterViewModel
+	{
+		public string Property { get; set; }
 	}
 }

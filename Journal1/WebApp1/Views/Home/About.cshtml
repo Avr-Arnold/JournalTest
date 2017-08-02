@@ -1,27 +1,87 @@
-﻿@{
-    ViewBag.Title = "About";
+﻿@using PagedList
+@using PagedList.Mvc
+@model PagedList.IPagedList<WebApp1.Models.PaperViewModel>
+
+@{
+	ViewBag.Title = "About";
 }
 <h2>@ViewBag.Title.</h2>
 <h3>@ViewBag.Message</h3>
 
+@Html.PagedListPager(Model, pageNumber => Url.Action("About", new {page = pageNumber, pageSize = ViewBag.PageSize}) , new PagedListRenderOptions()
+{
+	Display = PagedListDisplayMode.IfNeeded
+})
 
-	<h6> @ViewBag.Id </h6>
-	<h6> @ViewBag.Fields </h6>
-	<h6> @ViewBag.PsychArea </h6>
-	<h6> @ViewBag.KeyTopic </h6>
-	<h6> @ViewBag.TargetPopulation </h6>
-	<h6> @ViewBag.Title </h6>
-	<h6> @ViewBag.Authors </h6>
-	<h6> @ViewBag.JournalName </h6>
-	<h6> @ViewBag.AlertMonth </h6>
-	<h6> @ViewBag.PublicationDate </h6>
-	<h6> @ViewBag.Link </h6>
-	<h6> @ViewBag.Abstract </h6>
-			  
+
+<div class="row">
+	<div class="col-xs-12">
+		<div class="col-md-5">
+			<form class="" method="get" action="@Url.Action("About")">
+				@Html.DropDownList("pageSize", new List<SelectListItem>()
+				{
+					new SelectListItem(){Text = "25"},
+					new SelectListItem(){Text = "50"},
+					new SelectListItem(){Text = "75"},
+					new SelectListItem(){Text = "100"}
+				}, ViewBag.PageSize as string, new
+				{
+					onchange = "this.form.submit()",
+					id= "page-size-selector",
+					@class="form-control"
+				})
+			</form>
+		</div>
+	</div>
+
+
+</div>
+
+
+@{ int i = 1; }
+@foreach (var paper in Model)
+{
+	<h4>@i</h4>
+	@*<h6> @paper.Fields </h6>
+	<h6> @paper.PsychArea </h6>
+	<h6> @paper.KeyTopic </h6>
+	<h6> @paper.TargetPopulation </h6>*@
+
+	<h6 display="inline"> <a href=@paper.Link>@paper.Title</a></h6>
+
+	foreach (var author in @paper.Authors)
+	{
+		 <h6 > @author </h6>
+	}
+	<h6 display="inline"> @paper.JournalName </h6>
+
+	<h6 display="inline"> @paper.AlertMonth </h6>
+
+	<h6 display="inline"> @paper.PublicationDate </h6>
+	
+	<h6 display="inline"> @paper.Abstract </h6>
+	i++;
+}
+	
+@Html.PagedListPager(Model, pageNumber => Url.Action("About", new { page = pageNumber, pageSize = ViewBag.PageSize }), new PagedListRenderOptions()
+{
+	Display = PagedListDisplayMode.IfNeeded
+})		  
 
 
 
 <p>Use this area to provide additional information.</p>
 
 
+@section Scripts{
+	<script>
+		$(function() {
+			$('#page-size-selector').on('change',
+				function() {
 
+				});
+		})
+
+
+	</script>
+}
