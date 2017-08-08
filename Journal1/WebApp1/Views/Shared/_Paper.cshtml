@@ -1,0 +1,17 @@
+﻿@model WebApp1.Models.PaperViewModel
+
+<h6 display="inline"> <a href=@Model.Link>@Model.Title</a></h6>
+
+@foreach (var author in @Model.Authors)
+{
+
+<h6 > @author </h6>
+}
+
+<h6 display="inline"> @Model.JournalName </h6>
+
+<h6 display="inline"> @Model.AlertMonth </h6>
+
+<h6 display="inline"> @Model.PublicationDate </h6>
+	
+<h6 display="inline"> @Model.Abstract </h6>

@@ -1,0 +1,57 @@
+﻿@using PagedList
+@using PagedList.Mvc
+@using WebApp1.Controllers
+@model PagedList.IPagedList<WebApp1.Models.PaperViewModel>
+
+@{
+	var urlAction = (ViewBag.PagingUrlAction as string) ?? Url.Action("About", "Home");
+	var searchViewModel = ViewBag.SearchViewModel as SearchViewModel ?? new SearchViewModel();
+	Func<int,string,string> urlFunc = (pageNumber, url) =>
+	{
+		searchViewModel.PageNumber = pageNumber;
+		return Url.Action("About","Home", searchViewModel);
+	};
+}
+
+<div class="row" id="papers">
+	<div class="col-xs-12">
+		<div class="col-md-5">
+			<form class="" method="get" action="@urlAction">
+				@Html.DropDownList("pageSize", new List<SelectListItem>()
+				{
+					new SelectListItem(){Text = "25"},
+					new SelectListItem(){Text = "50"},
+					new SelectListItem(){Text = "75"},
+					new SelectListItem(){Text = "100"}
+				}, ViewBag.PageSize as string, new
+				{
+					onchange = "this.form.submit()",
+					id = "page-size-selector",
+					@class = "form-control"
+				})
+			</form>
+		</div>
+	</div>
+
+
+
+	@Html.PagedListPager(Model, pageNumber => urlFunc(pageNumber, urlAction), new PagedListRenderOptions()
+{
+	Display = PagedListDisplayMode.IfNeeded
+})
+
+	@{ int i = 1; }
+	@foreach (var paper in Model)
+	{
+		<h4>@i</h4>
+		@Html.Partial("_Paper", paper)
+
+		i++;
+	}
+	
+	@Html.PagedListPager(Model, pageNumber => urlFunc(pageNumber, urlAction), new PagedListRenderOptions()
+{
+	Display = PagedListDisplayMode.IfNeeded
+})
+</div>
+

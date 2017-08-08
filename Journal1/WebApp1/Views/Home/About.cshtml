@@ -1,6 +1,6 @@
 ﻿@using PagedList
 @using PagedList.Mvc
-@model PagedList.IPagedList<WebApp1.Models.PaperViewModel>
+@model WebApp1.Controllers.PageViewModel
 
 @{
 	ViewBag.Title = "About";
@@ -8,80 +8,179 @@
 <h2>@ViewBag.Title.</h2>
 <h3>@ViewBag.Message</h3>
 
-@Html.PagedListPager(Model, pageNumber => Url.Action("About", new {page = pageNumber, pageSize = ViewBag.PageSize}) , new PagedListRenderOptions()
-{
-	Display = PagedListDisplayMode.IfNeeded
-})
 
+
+
+
+<br/>
 
 <div class="row">
 	<div class="col-xs-12">
 		<div class="col-md-5">
-			<form class="" method="get" action="@Url.Action("About")">
-				@Html.DropDownList("pageSize", new List<SelectListItem>()
+			<div id="search-box">
+				@Html.DropDownList("searchField", new List<SelectListItem>()
 				{
-					new SelectListItem(){Text = "25"},
-					new SelectListItem(){Text = "50"},
-					new SelectListItem(){Text = "75"},
-					new SelectListItem(){Text = "100"}
+					new SelectListItem(){Text = "Title"},
+					new SelectListItem(){Text = "Journal Name"},
+					new SelectListItem(){Text = "Author"},
+					new SelectListItem(){Text = "Abstract"}
 				}, ViewBag.PageSize as string, new
 				{
-					onchange = "this.form.submit()",
-					id= "page-size-selector",
-					@class="form-control"
+					id = "searchField",
+					@class = "form-control"
 				})
-			</form>
+				
+				<input type="text" name="searchTerm" id="searchTerm" />
+				<button type="button" name="searchButton" id="searchButton" >Search</button>
+			</div>
 		</div>
 	</div>
 
 
 </div>
 
+<br />
 
-@{ int i = 1; }
-@foreach (var paper in Model)
-{
-	<h4>@i</h4>
-	@*<h6> @paper.Fields </h6>
-	<h6> @paper.PsychArea </h6>
-	<h6> @paper.KeyTopic </h6>
-	<h6> @paper.TargetPopulation </h6>*@
+<div class="container">
+	<div class='col-md-5'>
+		<div class="form-group">
+			<div class='input-group date'>
+				<input name='dateTimePicker6'  id='dateTimePicker6' type='text' class="form-control" />
+				<span class="input-group-addon">
+					<i class="fa fa-calendar"></i>
+				</span>
+			</div>
+		</div>
+	</div>
+	<div class='col-md-5'>
+		<div class="form-group">
+			<div class='input-group date'>
+				<input name='dateTimePicker7'  id='dateTimePicker7' type='text' class="form-control" />
+				<span class="input-group-addon">
+					<i class="fa fa-calendar"></i>
+				</span>
+			</div>
+			<button type="button" name="searchDate" id="searchDate">Search By Date</button>
+		</div>
+	</div>
+</div>
 
-	<h6 display="inline"> <a href=@paper.Link>@paper.Title</a></h6>
+<br />
 
-	foreach (var author in @paper.Authors)
-	{
-		 <h6 > @author </h6>
-	}
-	<h6 display="inline"> @paper.JournalName </h6>
-
-	<h6 display="inline"> @paper.AlertMonth </h6>
-
-	<h6 display="inline"> @paper.PublicationDate </h6>
-	
-	<h6 display="inline"> @paper.Abstract </h6>
-	i++;
-}
-	
-@Html.PagedListPager(Model, pageNumber => Url.Action("About", new { page = pageNumber, pageSize = ViewBag.PageSize }), new PagedListRenderOptions()
-{
-	Display = PagedListDisplayMode.IfNeeded
-})		  
-
+@Html.Raw(Model.Html)
 
 
-<p>Use this area to provide additional information.</p>
 
 
-@section Scripts{
-	<script>
-		$(function() {
-			$('#page-size-selector').on('change',
-				function() {
+
+
+
+
+
+	<p>Use this area to provide additional information.</p>
+
+
+	@section Scripts{
+		<script type="text/javascript">
+			$(function() {
+				$('#dateTimePicker6').datetimepicker({
+					useCurrent: false
+				});
+
+				$('#dateTimePicker7').datetimepicker({
+					useCurrent: false //Important! See issue #1075
+
 
 				});
-		})
+				$("#dateTimePicker6").on("dp.change",
+					function(e) {
+						$('#dateTimePicker7').data("DateTimePicker").minDate(e.date);
+					});
+				$("#dateTimePicker7").on("dp.change",
+					function(e) {
+						$('#dateTimePicker6').data("DateTimePicker").maxDate(e.date);
+					});
+
+			});
+		</script>
+		<script>
+			$(function() {
+				var $papers = $('#papers');
+
+				var $searchField = $('#searchField');
+				var $searchTerm = $('#searchTerm');
+
+				$("#searchButton").on('click',
+					function() {
+						$.ajax({
+							type: 'POST',
+							url: '@Url.Action("Search")',
+							data: JSON.stringify({
+								searchField: $searchField.val().trim(),
+								searchTerm: $searchTerm.val().trim(),
+								pageNumber: 1,
+								pageSize: 25,
+								searchType: 1
+							}),
+							contentType: 'application/json; charset=utf-8'
+						}).then(function(data) {
+							if (data) {
+								$papers.html(data.html);
+							}
+						});
+					});
+
+				$()
+			})
 
 
-	</script>
-}
+		</script>
+		<script>
+			$(function() {
+				var $papers = $('#papers');
+
+				var $dateTimePicker6 = $('#dateTimePicker6').data('DateTimePicker');
+				var $dateTimePicker7 = $('#dateTimePicker7').data('DateTimePicker');
+
+
+				$("#searchDate").on('click',
+					function() {
+						var startDate = $dateTimePicker6.date();
+						var endDate = $dateTimePicker7.date();
+						if (startDate === null) {
+
+						}
+
+						if (endDate === null) {
+
+						}
+
+						var $beginMonth = startDate.month();
+						var $beginYear = startDate.year();
+						var $endMonth = endDate.month();
+						var $endYear = endDate.year();
+
+						$.ajax({
+							type: 'GET',
+							url: '@Url.Action("DateSearch")',
+							data: {
+								beginMonth: $beginMonth,
+								beginYear: $beginYear,
+								endMonth: $endMonth,
+								endYear: $endYear,
+								vm: {
+									pageNumber: 1,
+									pageSize: 25
+								}
+							}
+						}).then(function(data) {
+							if (data) {
+								$papers.html(data.html);
+							}
+						});
+					});
+			})
+
+
+		</script>
+	}
